@@ -42,6 +42,13 @@ function installPackage {
     fi
 }
 
+# Install a set of packages.
+function installPackages {
+    yum -y install "$@"
+
+    echo "Installed $@"
+}
+
 # Install a template, but only if it differs from the source.
 #
 # $1: A file path relative to /vagrant/templates
@@ -93,60 +100,51 @@ function symlinkPhp {
     fi
 }
 
-function installComposer {
+function checkComposer {
     local VERSION="$1"
+    local BIN_COMPOSER="$2"
+    local FILENAME="$3"
     local PHP_SYMLINK="/usr/bin/php"
-    local BIN_COMPOSER="/usr/local/bin/composer"
-    local HOME_COMPOSER_PHAR="/home/vagrant/composer.phar"
-    local COMPOSER_PATH="https://getcomposer.org/download/$VERSION/composer.phar"
     local SYMLINK_MESSAGE=$(symlinkPhp)
 
     if [ -z "$SYMLINK_MESSAGE" ]; then
-        if [ -f "$BIN_COMPOSER" ]; then
-            if [ $(composer --version | grep -oP "[0-9.]*" | head -1) == "$VERSION" ]; then
-                echo "Composer version $VERSION already installed."
-            else
-                if [ ! -z $(getComposer "$VERSION") ]; then
-                    echo "ERROR installing composer."
-                fi
-            fi
-        else
-            if [ ! -z $(getComposer "$VERSION") ]; then
-                echo "ERROR installing composer."
-            fi
+        if [ -f "$BIN_COMPOSER/$FILENAME" ] && [ $("$BIN_COMPOSER/$FILENAME" --version | grep -oP "[0-9.]*" | head -1) == "$VERSION" ]; then
+            echo "Composer version $VERSION already installed."
         fi
     else
         echo "$SYMLINK_MESSAGE"
     fi
 }
 
-function removeComposer {
-    local HOME_COMPOSER_PHAR="/home/vagrant/composer.phar"
-    local BIN_COMPOSER="/usr/local/bin/composer"
-
-    if [ -f "$HOME_COMPOSER_PHAR" ]; then
-        sudo rm "$HOME_COMPOSER_PHAR"
-    fi
-
-    if [ -f "$BIN_COMPOSER" ]; then
-        sudo rm "$BIN_COMPOSER"
-    fi
-}
-
-function getComposer {
+function installComposer {
     local VERSION="$1"
-    local HOME_COMPOSER_PHAR="/home/vagrant/composer.phar"
-    local BIN_COMPOSER="/usr/local/bin/composer"
-    local COMPOSER_PATH="https://getcomposer.org/download/$VERSION/composer.phar"
+    local BIN_COMPOSER="$2"
+    local FILENAME="$3"
+    local COMPOSER_MESSAGE=$(checkComposer "$VERSION" "$BIN_COMPOSER" "$FILENAME")
 
-    removeComposer
+    if [ "$COMPOSER_MESSAGE" ]; then
+        echo "$COMPOSER_MESSAGE"
+        return
+    fi
 
-    sudo wget "$COMPOSER_PATH" "$HOME_COMPOSER_PHAR"
-    if [ -f "$HOME_COMPOSER_PHAR" ]; then
-        sudo mv "$HOME_COMPOSER_PHAR" "$BIN_COMPOSER"
-        sudo chmod 0777 "$BIN_COMPOSER"
+    local EXPECTED_SIGNATURE="$(wget -q -O - https://composer.github.io/installer.sig)"
+#
+    sudo php -r "copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');"
+    local ACTUAL_SIGNATURE="$(sudo php -r "echo hash_file('SHA384', '/tmp/composer-setup.php');")"
+
+    if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]; then
+        sudo rm /tmp/composer-setup.php
+        echo 'ERROR: Invalid installer signature'
     else
-        echo "ERROR"
+        sudo php /tmp/composer-setup.php --quiet --version="$VERSION" --install-dir="$BIN_COMPOSER" --filename="$FILENAME"
+        RESULT=$?
+        sudo rm /tmp/composer-setup.php
+        if [ "$RESULT" == "0" ]; then
+            sudo chmod 0777 "$BIN_COMPOSER/$FILENAME"
+            echo "Composer successfully installed"
+        else
+            echo "ERROR: Failed to install composer"
+        fi
     fi
 }
 
@@ -167,92 +165,96 @@ installRepo remi https://rpms.remirepo.net/enterprise/remi-release-7.rpm
 ## https://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/
 installRepo mysql https://dev.mysql.com/get/mysql57-community-release-el7-9.noarch.rpm
 
+installPackages mysql-community-server nginx http-parser nodejs redis
+
 # MySQL
-installPackage mysql-community-server
+#installPackage mysql-community-server
 
 # Nginx
-installPackage nginx
-
-# PHP packages
-installPackage php55
-installPackage php56
-installPackage php56-php-devel
-installPackage php70
-installPackage php71
-
-installPackage php55-php-fpm
-installPackage php56-php-fpm
-installPackage php70-php-fpm
-installPackage php71-php-fpm
-
-## Laravel dependency and generally desirable.
-installPackage php55-php-pdo
-installPackage php56-php-pdo
-installPackage php70-php-pdo
-installPackage php71-php-pdo
-
-## Just in case.
-installPackage php55-php-mysqlnd
-installPackage php56-php-mysqlnd
-installPackage php70-php-mysqlnd
-installPackage php71-php-mysqlnd
-
-## Laravel dependency.
-installPackage php55-php-mbstring
-installPackage php56-php-mbstring
-installPackage php70-php-mbstring
-installPackage php71-php-mbstring
-
-## Laravel dependency.
-installPackage php55-php-mcrypt
-installPackage php56-php-mcrypt
-installPackage php70-php-mcrypt
-installPackage php71-php-mcrypt
-
-## Vindicia dependency.
-installPackage php55-php-soap
-installPackage php56-php-soap
-installPackage php70-php-soap
-installPackage php71-php-soap
-
-## Nice to have.
-installPackage php55-php-pecl-xdebug
-installPackage php56-php-pecl-xdebug
-installPackage php70-php-pecl-xdebug
-installPackage php71-php-pecl-xdebug
-
-## Laravel dependency.
-installPackage php55-php-xml
-installPackage php56-php-xml
-installPackage php70-php-xml
-installPackage php71-php-xml
-
-## GMP dependency
-installPackage php55-php-gmp
-installPackage php56-php-gmp
-installPackage php70-php-gmp
-installPackage php71-php-gmp
+#installPackage nginx
 
 # Node
 # The http-parser package must be installed from here prior to the nodejs install due to the fact that it is not available in the EPEL repo
 # This must remain until CentOS is updated to 7.4
-installPackage http-parser
-installPackage nodejs
+#installPackage http-parser
+#installPackage nodejs
 
 # Redis
-installPackage redis
+#installPackage redis
+
+# PHP packages
+#installPackage php55
+#installPackage php56
+#installPackage php56-php-devel
+#installPackage php70
+installPackage php71
+
+#installPackage php55-php-fpm
+#installPackage php56-php-fpm
+#installPackage php70-php-fpm
+installPackage php71-php-fpm
+
+## Laravel dependency and generally desirable.
+#installPackage php55-php-pdo
+#installPackage php56-php-pdo
+#installPackage php70-php-pdo
+installPackage php71-php-pdo
+
+## Just in case.
+#installPackage php55-php-mysqlnd
+#installPackage php56-php-mysqlnd
+#installPackage php70-php-mysqlnd
+installPackage php71-php-mysqlnd
+
+## Laravel dependency.
+#installPackage php55-php-mbstring
+#installPackage php56-php-mbstring
+#installPackage php70-php-mbstring
+installPackage php71-php-mbstring
+
+## Laravel dependency.
+#installPackage php55-php-mcrypt
+#installPackage php56-php-mcrypt
+#installPackage php70-php-mcrypt
+installPackage php71-php-mcrypt
+
+## Vindicia dependency.
+#installPackage php55-php-soap
+#installPackage php56-php-soap
+#installPackage php70-php-soap
+installPackage php71-php-soap
+
+## Nice to have.
+#installPackage php55-php-pecl-xdebug
+#installPackage php56-php-pecl-xdebug
+#installPackage php70-php-pecl-xdebug
+installPackage php71-php-pecl-xdebug
+
+## Laravel dependency.
+#installPackage php55-php-xml
+#installPackage php56-php-xml
+#installPackage php70-php-xml
+installPackage php71-php-xml
+
+## GMP dependency
+#installPackage php55-php-gmp
+#installPackage php56-php-gmp
+#installPackage php70-php-gmp
+installPackage php71-php-gmp
 
 # System utilities
-installPackage cowsay
-installPackage emacs
-installPackage zile
-installPackage bind-utils
-installPackage tree
-installPackage tmux
-installPackage figlet
-installPackage ShellCheck
-installPackage pv
-installPackage sysstat
+installPackages cowsay emacs zile bind-utils tree tmux figlet ShellCheck pv sysstat
+
+#installPackage cowsay
+#installPackage emacs
+#installPackage zile
+#installPackage bind-utils
+#installPackage tree
+#installPackage tmux
+#installPackage figlet
+#installPackage ShellCheck
+#installPackage pv
+#installPackage sysstat
 
 # Template population
 for TEMPLATE in $(find /vagrant/templates -type f); do
@@ -260,21 +262,23 @@ for TEMPLATE in $(find /vagrant/templates -type f); do
 done
 
 # Packages needed for compiling
-installPackage bison
-installPackage boost
-installPackage boost-devel
-installPackage boost-static
-installPackage flex
-installPackage gcc-c++
-installPackage libevent-devel
-installPackage libtool
-installPackage mawk
-installPackage openssl
-installPackage openssl-devel
-installPackage unzip
-installPackage nano
-installPackage git
-installPackage wget
+installPackages bison boost boost-devel boost-static flex gcc-c++ libevent-devel libtool mawk openssl openssl-devel unzip nano git wget
+
+#installPackage bison
+#installPackage boost
+#installPackage boost-devel
+#installPackage boost-static
+#installPackage flex
+#installPackage gcc-c++
+#installPackage libevent-devel
+#installPackage libtool
+#installPackage mawk
+#installPackage openssl
+#installPackage openssl-devel
+#installPackage unzip
+#installPackage nano
+#installPackage git
+#installPackage wget
 
 
 # Permissions
@@ -284,9 +288,9 @@ gpasswd -a nginx vagrant
 # Services to run at startup
 sudo systemctl enable mysqld
 sudo systemctl enable nginx
-sudo systemctl enable php55-php-fpm
-sudo systemctl enable php56-php-fpm
-sudo systemctl enable php70-php-fpm
+#sudo systemctl enable php55-php-fpm
+#sudo systemctl enable php56-php-fpm
+#sudo systemctl enable php70-php-fpm
 sudo systemctl enable php71-php-fpm
 sudo systemctl enable redis
 
@@ -364,9 +368,9 @@ fi
 sudo sysctl -p /etc/sysctl.d/weblab.conf
 
 # Restart services (always, regardless of whether anything has changed)
-sudo systemctl restart php55-php-fpm
-sudo systemctl restart php56-php-fpm
-sudo systemctl restart php70-php-fpm
+#sudo systemctl restart php55-php-fpm
+#sudo systemctl restart php56-php-fpm
+#sudo systemctl restart php70-php-fpm
 sudo systemctl restart php71-php-fpm
 sudo systemctl restart nginx
 sudo systemctl restart mysqld
@@ -408,16 +412,13 @@ fi
 
 # Add aliases to /home/vagrant/.bashrc
 VAGRANT_USER_BASHRC="/home/vagrant/.bashrc"
-COMPOSER_VERSION="1.6.4"
 echo "alias la='ls -al --color=auto'" >> "$VAGRANT_USER_BASHRC"
-#installComposer "$COMPOSER_VERSION"
-ERROR_MESSAGE=$(installComposer "$COMPOSER_VERSION")
-if [ ! -z "$ERROR_MESSAGE" ]; then
-    echo "$ERROR_MESSAGE"
-    exit 1
-else
-    echo "Composer installed successfully"
-fi
 
+
+#Install Composer
+COMPOSER_VERSION="1.6.4"
+COMPOSER_BIN="/usr/local/bin"
+COMPOSER_FILENAME="composer"
+echo $(installComposer "$COMPOSER_VERSION" "$COMPOSER_BIN" "$COMPOSER_FILENAME")
 
 cowsay "Provisioning is complete! The IP of this machine is $GUEST_IP and your hosts file has been updated. Now visit http://weblab.local for credentials and setup details."

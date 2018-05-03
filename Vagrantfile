@@ -3,7 +3,7 @@
 
 # This version number isn't special, it's just the version already in
 # use when the idea to specify a minimum version came up.
-Vagrant.require_version ">= 1.8.6"
+Vagrant.require_version ">= 1.9.6"
 
 # Check for required plugins
 if ARGV[0] == 'up'
@@ -39,7 +39,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "centos/7"
 
   # Use specific known working box version
-  config.vm.box_version = "1707.01"
+  config.vm.box_version = "1803.01"
 
   # Update checking turned off
   config.vm.box_check_update = false
@@ -59,9 +59,9 @@ Vagrant.configure("2") do |config|
   #
   ## The /vagrant share is configured by default but
   ## redefined here to ensure the type doesn't default to rsync.
-  config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+  config.vm.synced_folder ".", "/vagrant", type: "virtualbox", SharedFoldersEnableSymlinksCreate: true
 
-  config.vm.synced_folder "../", "/weblab", type: "virtualbox"
+  config.vm.synced_folder "../", "/weblab", type: "virtualbox", SharedFoldersEnableSymlinksCreate: true
 
   # Provider-specific configuration
   #
@@ -75,7 +75,6 @@ Vagrant.configure("2") do |config|
     # The name shown in the VirtualBox UI
     vb.name = config.vm.hostname
 
-    # vb.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/vagrant", "1"]
   end
 
   # Hostfile management courtesy of the vagrant-hosts-provsioner plugin
