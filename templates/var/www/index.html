@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>weblab</title>
+
+        <link href="css/bootstrap.min.css" rel="stylesheet"/>
+        <link href="css/main.css" rel="stylesheet" />
+
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+            <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    <body>
+        <nav class="navbar">
+            <h1>Web Laboratory</h1>
+        </nav>
+
+        <div class="container">
+            <section id="nginx" class="row">
+                <div class="col-md-4">
+                    <h1>Nginx</h1>
+
+                    <h2>weblab.local</h2>
+
+                    <p><a href="http://weblab.local/status">nginx status</a></p>
+
+                    <p>
+                        PHP variants:
+                        <a href="http://php55.weblab.local/info.php"><kbd>5.5</kbd></a>,
+                        <a href="http://php56.weblab.local/info.php"><kbd>5.6</kbd></a>,
+                        <a href="http://php70.weblab.local/info.php"><kbd>7.0</kbd></a>,
+                        <a href="http://php71.weblab.local/info.php"><kbd>7.1</kbd></a>
+                    </p>
+
+                    <p>
+                        FPM status:
+                        <a href="http://php55.weblab.local/status?full"><kbd>5.5</kbd></a>
+                        <a href="http://php56.weblab.local/status?full"><kbd>5.6</kbd></a>
+                        <a href="http://php70.weblab.local/status?full"><kbd>7.0</kbd></a>
+                        <a href="http://php71.weblab.local/status?full"><kbd>7.1</kbd></a>
+                    </p>
+
+                    <h2>weblab.local</h2>
+
+                    <p>
+                        Primary: <a href="http://weblab.local"><kbd>7.1</kbd></a>
+                    </p>
+
+                    <h2>central-api.weblab.local</h2>
+
+                    <p>
+                        Primary: <a href="http://central-api.weblab.local"><kbd>7.1</kbd></a>
+                    </p>
+                </div>
+            </section>
+
+            <hr/>
+
+            <section id="hosts" class="row">
+                <div class="col-md-12">
+                    <h1>Host file entries</h1>
+
+                    <p>The following entries should have been added to the host file on both the VM host and VM guest by Vagrant. They are repeated here as a reference.</p>
+
+                    <div class="well">
+                        <samp>
+                            <p>10.4.10.4 weblab.local php55.weblab.local php56.weblab.local php70.weblab.local php71.weblab.local</p>
+
+                            <p>10.4.10.4 central-api.weblab.local</p>
+                        </samp>
+                    </div>
+                </div>
+            </section>
+
+            <hr/>
+
+            <section id="mysql" class="row">
+
+                <div class="col-md-12">
+                    <h1>MySQL</h1>
+
+                    <p>Version 5.7.17</p>
+
+                    <p>Table-based logging is enabled by default in <code>/etc/my.cnf</code>. Both the general and slow logs are enabled.</p>
+
+                    <p>The log tables are <code>mysq.general_log</code> and <code>mysql.slow_log</code></p>
+
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>User</th>
+                            <th>Password</th>
+                            <th>Availability</th>
+                            <th>Client setup</th>
+                        </tr>
+                        <tr>
+                            <th>root</th>
+                            <td><code>G42B&9i3</code></td>
+                            <td>internal only</td>
+                            <td>
+                                <code>mysql --defaults-file=.my-root.cnf</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>vagrant</th>
+                            <td><code>M24t^uHS</code></td>
+                            <td>internal and external</td>
+                            <td>
+                                <p><code>mysql</code> (uses <code>.my.cnf</code> by default)</p>
+                                <p><a href="downloads/vagrant.sycs">SQLYog connection file</a></p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+            </section>
+
+            <hr/>
+
+            <section id="ssh" class="row">
+                <div class="col-md-12">
+                    <h1>SSH</h1>
+
+                    <p>
+                        During provisioning, the file <code>~/.ssh/id_rsa</code> on
+                        the host as seen from the Vagrantfile was
+                        copied into the root of the devsetup checkout
+                        if it was available. A public key was then generated against this private key on the VM
+                        guest and added to the <code>authorized_keys</code> file for the vagrant
+                        user, allowing for direct connection to the VM guest without going through
+                        <code>vagrant ssh</code>
+                    </p>
+
+                </div>
+            </section>
+        </div>
+    </body>
+</html>

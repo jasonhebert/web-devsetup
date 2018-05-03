@@ -1,0 +1,87 @@
+# NOTE: It is not absolutely required (but highly recommended) that you have: `ignorecase = true`
+# in your `.gitconfig` file to maximize compatibility with some of these exclusion patterns.
+
+id_rsa
+
+# Local Dev
+.~*
+
+# Backups
+*~
+*.bak
+
+# PhpStorm
+# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm
+.idea/
+*.ipr
+*.iws
+.idea_modules/
+atlassian-ide-plugin.xml
+com_crashlytics_export_strings.xml
+*.php~
+_ide_helper.php
+.phpstorm.meta.php
+
+# Composer
+composer.phar
+
+# Laravel
+/vendor
+Homestead.yaml
+Homestead.json
+.env
+storage/debugbar/
+
+# Node
+node_modules/
+npm-debug.log
+
+# SASS
+.sass-cache/
+
+# Sublime
+*.sublime-workspace
+*.sublime-project
+
+# MS Code text editor
+Code
+
+# VC Systems
+CVS/
+.cvsignore
+.svn/
+_svn/
+.bzr/
+.bzrignore
+.hg/
+.hgignore
+SCCS/
+RCS/
+
+# PC Files
+$RECYCLE.BIN/
+Desktop.ini
+Thumbs.db
+ehthumbs.db
+
+# Mac Files
+.Spotlight-V100
+.AppleDouble
+.LSOverride
+.DS_Store
+.Trashes
+Icon?
+!Icons
+._*
+
+# Amazon Web Services
+.elasticbeanstalk/
+
+# Vagrant
+.vagrant/
+
+# SOAP Misc
+wsdl*
+
+# Testing
+/coverage

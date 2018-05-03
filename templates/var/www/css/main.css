@@ -1,0 +1,19 @@
+.navbar {
+    background-color: #3976a9;
+    padding: .5em;
+}
+
+.navbar h1 {
+    text-align: center;
+    color: #fff;
+    font-weight: bold;
+}
+
+.navbar .logo {
+    display: block;
+    margin: auto;
+}
+
+.container {
+    margin-bottom: 100px;
+}

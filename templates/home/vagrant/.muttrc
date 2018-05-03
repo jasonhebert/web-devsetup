@@ -1,0 +1,5 @@
+set mbox_type=Maildir
+set spoolfile="~/Maildir/"
+set folder="~/Maildir/"
+set folder="~/Maildir/"
+set mask=".*"
